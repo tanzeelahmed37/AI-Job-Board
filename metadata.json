@@ -1,0 +1,5 @@
+{
+  "name": "AI Job Board",
+  "description": "An AI-powered job board where companies can post jobs and students can apply with resumes. Features AI-driven resume analysis, job description enhancement, and profile image generation.",
+  "requestFramePermissions": []
+}
