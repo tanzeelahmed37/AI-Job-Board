@@ -1,14 +1,24 @@
-
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
-// Ensure you have your API key set in your environment variables
 const API_KEY = process.env.API_KEY;
+let ai: GoogleGenAI | null = null;
 
-if (!API_KEY) {
-  console.warn("Gemini API key not found. Please set the API_KEY environment variable.");
+if (API_KEY) {
+  try {
+    ai = new GoogleGenAI({ apiKey: API_KEY });
+  } catch (error) {
+    console.error("Failed to initialize GoogleGenAI:", error);
+  }
+} else {
+  console.warn("Gemini API key not found. Please set the API_KEY environment variable. AI features will be disabled.");
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY! });
+const getAi = (): GoogleGenAI => {
+    if (!ai) {
+        throw new Error("Gemini AI client is not initialized. Please check your API_KEY environment variable.");
+    }
+    return ai;
+};
 
 /**
  * Analyzes resume text and provides feedback.
@@ -17,9 +27,10 @@ const ai = new GoogleGenAI({ apiKey: API_KEY! });
  */
 export const analyzeResume = async (resumeText: string): Promise<string> => {
   try {
+    const aiClient = getAi();
     const prompt = `You are an expert career coach for students and new graduates. Analyze the following resume text and provide constructive feedback. Focus on clarity, impact of bullet points (using action verbs and quantifiable results), and formatting suggestions. Structure your feedback into three sections: "✅ Strengths", "📈 Areas for Improvement", and "🚀 Actionable Suggestions". Keep the feedback concise and encouraging. The resume is:\n\n---\n\n${resumeText}`;
 
-    const response: GenerateContentResponse = await ai.models.generateContent({
+    const response: GenerateContentResponse = await aiClient.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
     });
@@ -38,9 +49,10 @@ export const analyzeResume = async (resumeText: string): Promise<string> => {
  */
 export const enhanceJobDescription = async (jobDescription: string): Promise<string> => {
   try {
+    const aiClient = getAi();
     const prompt = `You are an expert copywriter specializing in job descriptions. Rewrite the following job description to be more engaging, clear, and inclusive. Use a friendly yet professional tone. Ensure it highlights the company culture and attracts top talent. Structure it with clear headings like "What You'll Do", "What We're Looking For", and "Why You'll Love Working With Us". The original description is:\n\n---\n\n${jobDescription}`;
     
-    const response: GenerateContentResponse = await ai.models.generateContent({
+    const response: GenerateContentResponse = await aiClient.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
     });
@@ -59,9 +71,10 @@ export const enhanceJobDescription = async (jobDescription: string): Promise<str
  */
 export const generateProfileImage = async (prompt: string): Promise<string> => {
     try {
+        const aiClient = getAi();
         const fullPrompt = `A professional, friendly-looking headshot of ${prompt}, digital art, suitable for a professional profile on a job board. Soft, clean background.`;
         
-        const response = await ai.models.generateImages({
+        const response = await aiClient.models.generateImages({
             model: 'imagen-4.0-generate-001',
             prompt: fullPrompt,
             config: {
